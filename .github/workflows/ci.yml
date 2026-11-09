@@ -39,7 +39,7 @@ jobs:
           cache-dependency-path: hustlehub-backend/package-lock.json
 
       - name: Install backend dependencies
-        run: npm ci --prefix hustlehub-backend
+        run: npm ci --ignore-scripts --prefix hustlehub-backend
 
       - name: Run backend ESLint
         run: npm run lint --prefix hustlehub-backend
