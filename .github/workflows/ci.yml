@@ -70,11 +70,11 @@ jobs:
           cache-dependency-path: Frontend/package-lock.json
 
       - name: Install frontend dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Run frontend tests
         run: npm test
-
+        
       - name: Run ESLint
         run: npm run lint
 
