@@ -1,0 +1,1050 @@
+{
+    "info":  {
+                 "name":  "MERN Marketplace API",
+                 "description":  "Auth and RBAC smoke tests. Configure baseUrl, jwtSecret, and a valid freelancerToken in the active Postman environment. Register and login requests create the clientToken automatically.",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "Auth",
+                     "item":  [
+                                  {
+                                      "name":  "Register - Success",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "prerequest",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "const email = \u0027postman.\u0027 + pm.variables.replaceIn(\u0027{{$guid}}\u0027) + \u0027@example.com\u0027;",
+                                                                                    "pm.collectionVariables.set(\u0027registeredEmail\u0027, email);",
+                                                                                    "pm.collectionVariables.set(\u0027registeredPassword\u0027, \u0027TestPass123!\u0027);"
+                                                                                ]
+                                                                   }
+                                                    },
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 201\u0027, function () { pm.response.to.have.status(201); });",
+                                                                                    "pm.test(\u0027Returns the created client without a password\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(true); pm.expect(body.user).to.have.property(\u0027id\u0027); pm.expect(body.user.email).to.eql(pm.collectionVariables.get(\u0027registeredEmail\u0027)); pm.expect(body.user.role).to.eql(\u0027client\u0027); pm.expect(body.user).not.to.have.property(\u0027password\u0027); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"name\": \"Postman Client\",\n  \"surname\": \"Collection\",\n  \"email\": \"{{registeredEmail}}\",\n  \"password\": \"{{registeredPassword}}\",\n  \"role\": \"client\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/auth/register"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Register - Duplicate Email",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 409\u0027, function () { pm.response.to.have.status(409); });",
+                                                                                    "pm.test(\u0027Returns a duplicate email error\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(false); pm.expect(body.message).to.include(\u0027already exists\u0027); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"name\": \"Postman Client\",\n  \"surname\": \"Duplicate\",\n  \"email\": \"{{registeredEmail}}\",\n  \"password\": \"{{registeredPassword}}\",\n  \"role\": \"client\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/auth/register"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Register - Missing Fields",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 400\u0027, function () { pm.response.to.have.status(400); });",
+                                                                                    "pm.test(\u0027Returns validation errors\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(false); pm.expect(body.errors).to.be.an(\u0027array\u0027).that.is.not.empty; });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/auth/register"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Login - Success",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function () { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns a client token and user\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(true); pm.expect(body.token).to.be.a(\u0027string\u0027).and.not.empty; pm.expect(body.user.email).to.eql(pm.collectionVariables.get(\u0027registeredEmail\u0027)); pm.expect(body.user.role).to.eql(\u0027client\u0027); pm.expect(body.user).not.to.have.property(\u0027password\u0027); pm.environment.set(\u0027token\u0027, body.token); pm.environment.set(\u0027clientToken\u0027, body.token); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"{{registeredEmail}}\",\n  \"password\": \"{{registeredPassword}}\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/auth/login"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Login - Wrong Password",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 401\u0027, function () { pm.response.to.have.status(401); });",
+                                                                                    "pm.test(\u0027Returns the generic credential error\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(false); pm.expect(body.message).to.eql(\u0027Incorrect email or password.\u0027); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"{{registeredEmail}}\",\n  \"password\": \"WrongPass123!\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/auth/login"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Login - Unknown User",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "prerequest",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.collectionVariables.set(\u0027unknownEmail\u0027, \u0027unknown.\u0027 + pm.variables.replaceIn(\u0027{{$guid}}\u0027) + \u0027@example.com\u0027);"
+                                                                                ]
+                                                                   }
+                                                    },
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 401\u0027, function () { pm.response.to.have.status(401); });",
+                                                                                    "pm.test(\u0027Does not disclose whether the account exists\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(false); pm.expect(body.message).to.eql(\u0027Incorrect email or password.\u0027); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"{{unknownEmail}}\",\n  \"password\": \"TestPass123!\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/auth/login"
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "RBAC",
+                     "item":  [
+                                  {
+                                      "name":  "Setup - Register primary freelancer",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "prerequest",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "const email = \u0027postman.freelancer.\u0027 + pm.variables.replaceIn(\u0027{{$guid}}\u0027) + \u0027@example.com\u0027;",
+                                                                                    "pm.collectionVariables.set(\u0027primaryFreelancerEmail\u0027, email);",
+                                                                                    "pm.collectionVariables.set(\u0027primaryFreelancerPassword\u0027, \u0027OtherPass123!\u0027);"
+                                                                                ]
+                                                                   }
+                                                    },
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 201\u0027, function () { pm.response.to.have.status(201); });",
+                                                                                    "pm.test(\u0027Creates a freelancer fixture user\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(true); pm.expect(body.user.role).to.eql(\u0027freelancer\u0027); pm.expect(body.user.email).to.eql(pm.collectionVariables.get(\u0027primaryFreelancerEmail\u0027)); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"name\": \"Fixture\",\n  \"surname\": \"Freelancer\",\n  \"email\": \"{{primaryFreelancerEmail}}\",\n  \"password\": \"{{primaryFreelancerPassword}}\",\n  \"role\": \"freelancer\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/auth/register"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Setup - Login primary freelancer",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function () { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Stores a freelancer fixture token\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(true); pm.expect(body.user.role).to.eql(\u0027freelancer\u0027); pm.environment.set(\u0027freelancerToken\u0027, body.token); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"{{primaryFreelancerEmail}}\",\n  \"password\": \"{{primaryFreelancerPassword}}\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/auth/login"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Profile - No Token",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 401\u0027, function () { pm.response.to.have.status(401); });",
+                                                                                    "pm.test(\u0027Reports missing authentication\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(false); pm.expect(body.message).to.include(\u0027No token provided\u0027); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/profile"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Profile - Invalid Token",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 401\u0027, function () { pm.response.to.have.status(401); });",
+                                                                                    "pm.test(\u0027Reports an invalid token\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(false); pm.expect(body.message).to.eql(\u0027Invalid authentication token.\u0027); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{token}}-tampered"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/profile"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Profile - Expired Token",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "prerequest",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "const secret = pm.environment.get(\u0027jwtSecret\u0027);",
+                                                                                    "if (!secret) { throw new Error(\u0027Set jwtSecret in the active environment to the test server JWT_SECRET.\u0027); }",
+                                                                                    "const encode = function (value) { return CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(JSON.stringify(value))).replace(/=+$/, \u0027\u0027).replace(/\\+/g, \u0027-\u0027).replace(/\\//g, \u0027_\u0027); };",
+                                                                                    "const now = Math.floor(Date.now() / 1000);",
+                                                                                    "const header = encode({ alg: \u0027HS256\u0027, typ: \u0027JWT\u0027 });",
+                                                                                    "const payload = encode({ userId: \u002764b000000000000000000001\u0027, email: \u0027expired@example.com\u0027, role: \u0027client\u0027, iss: \u0027hustlehub-api\u0027, aud: \u0027hustlehub-web\u0027, jti: \u0027550e8400-e29b-41d4-a716-446655440000\u0027, iat: now - 120, exp: now - 60 });",
+                                                                                    "const unsigned = header + \u0027.\u0027 + payload;",
+                                                                                    "const signature = CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(unsigned, secret)).replace(/=+$/, \u0027\u0027).replace(/\\+/g, \u0027-\u0027).replace(/\\//g, \u0027_\u0027);",
+                                                                                    "pm.variables.set(\u0027expiredJwt\u0027, unsigned + \u0027.\u0027 + signature);"
+                                                                                ]
+                                                                   }
+                                                    },
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 401\u0027, function () { pm.response.to.have.status(401); });",
+                                                                                    "pm.test(\u0027Reports an expired token\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(false); pm.expect(body.message).to.include(\u0027token has expired\u0027); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{expiredJwt}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/profile"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Create Gig - Client Token Forbidden",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 403\u0027, function () { pm.response.to.have.status(403); });",
+                                                                                    "pm.test(\u0027Reports insufficient role\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(false); pm.expect(body.message).to.include(\u0027permission\u0027); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{clientToken}}"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"title\": \"Postman RBAC gig\",\n  \"description\": \"This request should be rejected before gig creation.\",\n  \"category\": \"Testing\",\n  \"price\": 25\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/gigs"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Profile - Valid Freelancer Token",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function () { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns a freelancer profile\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(true); pm.expect(body.user).to.have.property(\u0027userId\u0027); pm.expect(body.user.role).to.eql(\u0027freelancer\u0027); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{freelancerToken}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/profile"
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Gigs",
+                     "item":  [
+                                  {
+                                      "name":  "Setup - Register second freelancer",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "prerequest",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "const email = \u0027postman.freelancer.\u0027 + pm.variables.replaceIn(\u0027{{$guid}}\u0027) + \u0027@example.com\u0027;",
+                                                                                    "pm.collectionVariables.set(\u0027fixtureFreelancerEmail\u0027, email);",
+                                                                                    "pm.collectionVariables.set(\u0027fixtureFreelancerPassword\u0027, \u0027OtherPass123!\u0027);"
+                                                                                ]
+                                                                   }
+                                                    },
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 201\u0027, function () { pm.response.to.have.status(201); });",
+                                                                                    "pm.test(\u0027Creates a freelancer fixture user\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(true); pm.expect(body.user.role).to.eql(\u0027freelancer\u0027); pm.expect(body.user.email).to.eql(pm.collectionVariables.get(\u0027fixtureFreelancerEmail\u0027)); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"name\": \"Fixture\",\n  \"surname\": \"Freelancer\",\n  \"email\": \"{{fixtureFreelancerEmail}}\",\n  \"password\": \"{{fixtureFreelancerPassword}}\",\n  \"role\": \"freelancer\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/auth/register"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Setup - Login second freelancer",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function () { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Stores a freelancer fixture token\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(true); pm.expect(body.user.role).to.eql(\u0027freelancer\u0027); pm.environment.set(\u0027otherFreelancerToken\u0027, body.token); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"email\": \"{{fixtureFreelancerEmail}}\",\n  \"password\": \"{{fixtureFreelancerPassword}}\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/auth/login"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Setup - Create another freelancer\u0027s gig",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 201\u0027, function () { pm.response.to.have.status(201); });",
+                                                                                    "pm.test(\u0027Stores the other freelancer gig ID\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(true); pm.expect(body.data).to.have.property(\u0027_id\u0027); pm.environment.set(\u0027otherFreelancerGigId\u0027, body.data._id); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{otherFreelancerToken}}"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"title\": \"Other freelancer fixture gig\",\n  \"description\": \"Ownership fixture for forbidden update and delete requests.\",\n  \"category\": \"Testing\",\n  \"price\": 75\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/gigs"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Setup - Create own deletion fixture gig",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 201\u0027, function () { pm.response.to.have.status(201); });",
+                                                                                    "pm.test(\u0027Stores the own deletion fixture ID\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(true); pm.expect(body.data).to.have.property(\u0027_id\u0027); pm.environment.set(\u0027deleteGigId\u0027, body.data._id); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{freelancerToken}}"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"title\": \"Own deletion fixture gig\",\n  \"description\": \"Separate owned gig for the delete test.\",\n  \"category\": \"Testing\",\n  \"price\": 25\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/gigs"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Create gig (freelancer)",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 201\u0027, function () { pm.response.to.have.status(201); });",
+                                                                                    "pm.test(\u0027Stores the created gig ID and price\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(true); pm.expect(body.data).to.have.property(\u0027_id\u0027); pm.expect(body.data.title).to.eql(\u0027Postman chained gig\u0027); pm.environment.set(\u0027gigId\u0027, body.data._id); pm.environment.set(\u0027gigPrice\u0027, String(body.data.price)); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{freelancerToken}}"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"title\": \"Postman chained gig\",\n  \"description\": \"Gig used by the chained marketplace requests.\",\n  \"category\": \"Testing\",\n  \"price\": 120.5\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/gigs"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Get all gigs",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function () { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns the created gig in data\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(true); pm.expect(body.data).to.be.an(\u0027array\u0027); pm.expect(body.data.some(function (gig) { return gig._id === pm.environment.get(\u0027gigId\u0027); })).to.eql(true); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/gigs"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Get gig by ID",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function () { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Returns the requested gig\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(true); pm.expect(body.data._id).to.eql(pm.environment.get(\u0027gigId\u0027)); pm.expect(Number(body.data.price)).to.eql(Number(pm.environment.get(\u0027gigPrice\u0027))); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/gigs/{{gigId}}"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Update own gig",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function () { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Updates own gig and keeps its price for booking checks\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(true); pm.expect(body.data._id).to.eql(pm.environment.get(\u0027gigId\u0027)); pm.expect(body.data.title).to.eql(\u0027Postman chained gig updated\u0027); pm.environment.set(\u0027gigPrice\u0027, String(body.data.price)); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{freelancerToken}}"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"title\": \"Postman chained gig updated\",\n  \"description\": \"Updated gig used by the chained booking requests.\",\n  \"category\": \"Testing\",\n  \"price\": 145.75\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/gigs/{{gigId}}"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Update another freelancer\u0027s gig (403)",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 403\u0027, function () { pm.response.to.have.status(403); });",
+                                                                                    "pm.test(\u0027Reports ownership denial\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(false); pm.expect(body.message).to.include(\u0027Not authorized\u0027); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "PUT",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{freelancerToken}}"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"title\": \"Unauthorized update\",\n  \"description\": \"This update must be forbidden.\",\n  \"category\": \"Testing\",\n  \"price\": 75\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/gigs/{{otherFreelancerGigId}}"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Delete own gig",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function () { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Confirms own gig deletion\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(true); pm.expect(body.message).to.eql(\u0027Gig deleted successfully\u0027); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{freelancerToken}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/gigs/{{deleteGigId}}"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Delete another freelancer\u0027s gig (403)",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 403\u0027, function () { pm.response.to.have.status(403); });",
+                                                                                    "pm.test(\u0027Reports ownership denial\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(false); pm.expect(body.message).to.include(\u0027Not authorized\u0027); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "DELETE",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{freelancerToken}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/gigs/{{otherFreelancerGigId}}"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Create gig as client (403)",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 403\u0027, function () { pm.response.to.have.status(403); });",
+                                                                                    "pm.test(\u0027Reports insufficient role\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(false); pm.expect(body.message).to.include(\u0027permission\u0027); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{clientToken}}"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"title\": \"Client forbidden gig\",\n  \"description\": \"Clients cannot create gigs.\",\n  \"category\": \"Testing\",\n  \"price\": 10\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/gigs"
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Bookings",
+                     "item":  [
+                                  {
+                                      "name":  "Create booking as client",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 201\u0027, function () { pm.response.to.have.status(201); });",
+                                                                                    "pm.test(\u0027Booking and transaction use the stored gig price\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(true); pm.expect(body.confirmation.bookingId).to.be.a(\u0027string\u0027); pm.expect(body.confirmation.transactionId).to.be.a(\u0027string\u0027); pm.expect(Number(body.confirmation.amount)).to.eql(Number(pm.environment.get(\u0027gigPrice\u0027))); pm.environment.set(\u0027bookingId\u0027, body.confirmation.bookingId); pm.environment.set(\u0027transactionId\u0027, body.confirmation.transactionId); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{clientToken}}"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"gigId\": \"{{gigId}}\",\n  \"notes\": \"Created by the Postman marketplace collection.\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/bookings"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Verify transaction record and amount",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function () { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Transaction exists for the booking and charges the gig price\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(true); const transaction = body.transactions.find(function (item) { return item.transactionId === pm.environment.get(\u0027transactionId\u0027) \u0026\u0026 item.bookingId === pm.environment.get(\u0027bookingId\u0027); }); pm.expect(transaction, \u0027matching transaction\u0027).to.exist; pm.expect(Number(transaction.amount)).to.eql(Number(pm.environment.get(\u0027gigPrice\u0027))); pm.expect(transaction.status).to.eql(\u0027completed\u0027); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{clientToken}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/transactions/my"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Get my bookings as client",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function () { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Includes the created booking\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(true); pm.expect(body.bookings).to.be.an(\u0027array\u0027); pm.expect(body.bookings.some(function (booking) { return booking._id === pm.environment.get(\u0027bookingId\u0027); })).to.eql(true); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{clientToken}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/bookings/my"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Get freelancer bookings",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 200\u0027, function () { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\u0027Includes the created booking for this freelancer\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(true); pm.expect(body.bookings).to.be.an(\u0027array\u0027); pm.expect(body.bookings.some(function (booking) { return booking._id === pm.environment.get(\u0027bookingId\u0027); })).to.eql(true); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{freelancerToken}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/api/bookings/freelancer"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Create booking for non-existent gig (404)",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Status is 404\u0027, function () { pm.response.to.have.status(404); });",
+                                                                                    "pm.test(\u0027Reports that the gig does not exist\u0027, function () { const body = pm.response.json(); pm.expect(body.success).to.eql(false); pm.expect(body.message).to.eql(\u0027Gig not found.\u0027); });"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{clientToken}}"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"gigId\": \"000000000000000000000000\",\n  \"notes\": \"This gig ID should not exist.\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               },
+                                                      "url":  "{{baseUrl}}/api/bookings"
+                                                  }
+                                  }
+                              ]
+                 }
+             ],
+    "variable":  [
+                     {
+                         "key":  "registeredEmail",
+                         "value":  ""
+                     },
+                     {
+                         "key":  "registeredPassword",
+                         "value":  ""
+                     },
+                     {
+                         "key":  "unknownEmail",
+                         "value":  ""
+                     }
+                 ]
+}

@@ -1,0 +1,17 @@
+﻿# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Local HTTPS certificates
+certs/
+*.pem
+*.pfx
+*.key
+certs.zip
+
+# Backups
+*.safekeep*.zip

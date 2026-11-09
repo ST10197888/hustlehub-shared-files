@@ -1,0 +1,7 @@
+schema: "classroom50/repo-config/v1"
+classroom: "insy7314-g3-2026"
+assignment: "insy7314-part-1"
+owner:
+  username: "ST10197888"
+  id: 128486517
+  accepted_at: "2026-09-01T18:46:07Z"

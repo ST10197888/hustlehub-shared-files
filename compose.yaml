@@ -1,0 +1,74 @@
+
+services:
+  mongodb:
+    image: mongo:8
+    restart: unless-stopped
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test:
+        - CMD
+        - mongosh
+        - --quiet
+        - --eval
+        - "db.adminCommand({ ping: 1 }).ok"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  backend:
+    build:
+      context: ./hustlehub-backend
+    image: hustlehub-backend:local
+    restart: unless-stopped
+    environment:
+      TRUST_PROXY: "1"
+      NODE_ENV: production
+      PORT: "5000"
+      HTTPS_ENABLED: "false"
+      CLIENT_ORIGIN: "http://localhost:3000"
+      MONGODB_URI: "mongodb://mongodb:27017/hustlehub"
+      JWT_SECRET: 5963511248E281A6CF4AE346677A6B57464A7BB10F11D577A018C032B23871B9D2B98842F2A0D56D830B857308FA11FECBCC59E3853FED5253EBB435811DA4B0
+      JWT_EXPIRES_IN: "1d"
+      BETTER_STACK_ENABLED: "false"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "require('http').get('http://127.0.0.1:5000/health/ready', r => { r.resume(); process.exitCode = r.statusCode === 200 ? 0 : 1; }).on('error', () => process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  frontend:
+    build:
+      context: ./Frontend
+      args:
+        VITE_API_URL: /
+    image: hustlehub-frontend:local
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - -q
+        - --spider
+        - http://127.0.0.1:8080/
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  mongodb_data:

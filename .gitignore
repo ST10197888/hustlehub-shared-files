@@ -1,0 +1,12 @@
+.env
+node_modules/
+.env.docker
+# Local development files
+.vs/
+
+# Generated Newman reports
+newman/
+
+# Local Postman repair backups
+postman/*.backup.json
+postman/*.pre-repair.json

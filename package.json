@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "axios": "^1.20.0",
+    "react-router-dom": "^7.18.4"
+  },
+  "scripts": {
+    "test:api": "newman run postman/MERN-Marketplace.postman_collection.json -e postman/local.postman_environment.json --reporters cli,htmlextra"
+  },
+  "devDependencies": {
+    "newman": "^6.2.3",
+    "newman-reporter-htmlextra": "^1.23.1"
+  },
+  "devDependencies": {
+    "newman": "^6.2.3",
+    "newman-reporter-htmlextra": "^1.23.1"
+  }
+}
